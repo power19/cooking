@@ -471,6 +471,13 @@ def init_db():
         print("Database initialized with sample Surinamese ingredients!")
 
 
+# Initialize database on app startup (works with gunicorn too)
+with app.app_context():
+    db.create_all()
+    # Add sample data if database is empty
+    if Ingredient.query.count() == 0:
+        init_db()
+
+
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
