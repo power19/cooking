@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping List - {{ meal_plan.name }}{% endblock %}
+
+{% block content %}
+<div class="flex-between">
+    <h1>Shopping List: {{ meal_plan.name }}</h1>
+    <a href="{{ url_for('meal_plan_view', id=meal_plan.id) }}" class="btn btn-secondary">Back to Plan</a>
+</div>
+
+<div class="card">
+    <div class="flex-between mb-2">
+        <div>
+            <strong>Week of:</strong> {{ meal_plan.week_start.strftime('%B %d, %Y') }}
+        </div>
+        <div>
+            <strong>Total Cost:</strong> <span class="price price-large">{{ format_currency(total_cost) }}</span>
+            {% if meal_plan.budget %}
+                <br>
+                {% if meal_plan.remaining_budget >= 0 %}
+                    <span class="budget-status budget-ok">Within budget ({{ format_currency(meal_plan.remaining_budget) }} left)</span>
+                {% else %}
+                    <span class="budget-status budget-over">Over budget by {{ format_currency(-meal_plan.remaining_budget) }}</span>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    {% if shopping_items %}
+        {% set current_category = namespace(value='') %}
+        {% for item in shopping_items %}
+            {% if item.ingredient.category != current_category.value %}
+                {% if current_category.value != '' %}
+                    </div>
+                {% endif %}
+                {% set current_category.value = item.ingredient.category %}
+                <div class="shopping-category">
+                    <h3>{{ item.ingredient.category|title }}</h3>
+            {% endif %}
+
+            <div class="shopping-item">
+                <div>
+                    <input type="checkbox" id="item-{{ item.ingredient.id }}" style="margin-right: 0.5rem;">
+                    <label for="item-{{ item.ingredient.id }}" style="cursor: pointer;">
+                        <strong>{{ item.ingredient.name }}</strong>
+                        <span style="color: #666;">- {{ item.quantity|round(2) }} {{ item.unit }}</span>
+                    </label>
+                </div>
+                <div class="price">{{ format_currency(item.cost) }}</div>
+            </div>
+        {% endfor %}
+        </div>
+
+        <div class="cost-breakdown mt-2">
+            <div class="cost-item cost-total">
+                <span>Total Shopping Cost:</span>
+                <span class="price price-large">{{ format_currency(total_cost) }}</span>
+            </div>
+        </div>
+    {% else %}
+        <p class="text-center">No meals planned yet. <a href="{{ url_for('meal_plan_edit', id=meal_plan.id) }}">Add meals to generate a shopping list.</a></p>
+    {% endif %}
+</div>
+
+<div class="mt-2">
+    <a href="{{ url_for('meal_plan_list') }}" class="btn btn-secondary">Back to Meal Plans</a>
+</div>
+
+{% block scripts %}
+<script>
+// Save checkbox states to localStorage
+document.querySelectorAll('.shopping-item input[type="checkbox"]').forEach(function(checkbox) {
+    const key = 'shopping-{{ meal_plan.id }}-' + checkbox.id;
+
+    // Restore state
+    if (localStorage.getItem(key) === 'true') {
+        checkbox.checked = true;
+        checkbox.parentElement.parentElement.style.opacity = '0.5';
+        checkbox.parentElement.parentElement.style.textDecoration = 'line-through';
+    }
+
+    // Save state on change
+    checkbox.addEventListener('change', function() {
+        localStorage.setItem(key, this.checked);
+        if (this.checked) {
+            this.parentElement.parentElement.style.opacity = '0.5';
+            this.parentElement.parentElement.style.textDecoration = 'line-through';
+        } else {
+            this.parentElement.parentElement.style.opacity = '1';
+            this.parentElement.parentElement.style.textDecoration = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

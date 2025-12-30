@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Meal Plans{% endblock %}
+
+{% block content %}
+<div class="flex-between">
+    <h1>Meal Plans</h1>
+    <a href="{{ url_for('meal_plan_add') }}" class="btn btn-primary">+ Create Meal Plan</a>
+</div>
+
+<div class="card">
+    {% if meal_plans %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Plan Name</th>
+                    <th>Week Starting</th>
+                    <th>Budget</th>
+                    <th>Total Cost</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plan in meal_plans %}
+                    <tr>
+                        <td><a href="{{ url_for('meal_plan_view', id=plan.id) }}"><strong>{{ plan.name }}</strong></a></td>
+                        <td>{{ plan.week_start.strftime('%B %d, %Y') }}</td>
+                        <td class="price">{% if plan.budget %}{{ format_currency(plan.budget) }}{% else %}-{% endif %}</td>
+                        <td class="price">{{ format_currency(plan.total_cost) }}</td>
+                        <td>
+                            {% if plan.budget %}
+                                {% set remaining = plan.remaining_budget %}
+                                {% if remaining >= plan.budget * 0.2 %}
+                                    <span class="budget-status budget-ok">{{ format_currency(remaining) }} left</span>
+                                {% elif remaining >= 0 %}
+                                    <span class="budget-status budget-warning">{{ format_currency(remaining) }} left</span>
+                                {% else %}
+                                    <span class="budget-status budget-over">{{ format_currency(-remaining) }} over</span>
+                                {% endif %}
+                            {% else %}
+                                <span style="color: #666;">No budget</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('meal_plan_view', id=plan.id) }}" class="btn btn-small btn-primary">View</a>
+                            <a href="{{ url_for('meal_plan_edit', id=plan.id) }}" class="btn btn-small btn-secondary">Edit</a>
+                            <a href="{{ url_for('shopping_list', id=plan.id) }}" class="btn btn-small btn-secondary">🛒 List</a>
+                            <form method="POST" action="{{ url_for('meal_plan_delete', id=plan.id) }}" style="display: inline;" onsubmit="return confirm('Delete this meal plan?');">
+                                <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-center">No meal plans yet. <a href="{{ url_for('meal_plan_add') }}">Create your first meal plan!</a></p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Edit: {{ recipe.name }}{% endblock %}
+
+{% block content %}
+<h1>Edit Recipe: {{ recipe.name }}</h1>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+    <div class="card">
+        <h2>Recipe Details</h2>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.name.label }}
+                {{ form.name(class="form-control") }}
+            </div>
+
+            <div class="form-group">
+                {{ form.description.label }}
+                {{ form.description(class="form-control", rows="2") }}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                <div class="form-group">
+                    {{ form.servings.label }}
+                    {{ form.servings(class="form-control", min="1") }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.prep_time_minutes.label }}
+                    {{ form.prep_time_minutes(class="form-control", min="0") }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.cook_time_minutes.label }}
+                    {{ form.cook_time_minutes(class="form-control", min="0") }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ form.instructions.label }}
+                {{ form.instructions(class="form-control", rows="4") }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+    </div>
+
+    <div>
+        <div class="card">
+            <h2>Ingredients</h2>
+
+            {% if recipe.ingredients.count() > 0 %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ingredient</th>
+                            <th>Qty</th>
+                            <th>Cost</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ri in recipe.ingredients %}
+                            <tr>
+                                <td>{{ ri.ingredient.name }}</td>
+                                <td>{{ ri.quantity }} {{ ri.ingredient.unit }}</td>
+                                <td class="price">{{ format_currency(ri.quantity * ri.ingredient.price_per_unit) }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('recipe_ingredient_delete', recipe_id=recipe.id, ri_id=ri.id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-small btn-danger">×</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="cost-breakdown mt-2">
+                    <div class="cost-item cost-total">
+                        <span>Total Cost:</span>
+                        <span class="price">{{ format_currency(recipe.total_cost) }}</span>
+                    </div>
+                    <div class="cost-item">
+                        <span>Per Serving:</span>
+                        <span class="price">{{ format_currency(recipe.cost_per_serving) }}</span>
+                    </div>
+                </div>
+            {% else %}
+                <p style="color: #666;">No ingredients added yet.</p>
+            {% endif %}
+
+            <hr style="margin: 1rem 0;">
+
+            <h3>Add Ingredient</h3>
+            {% if ingredients %}
+                <form method="POST" action="{{ url_for('recipe_ingredient_add', id=recipe.id) }}">
+                    <div class="form-group">
+                        <label>Ingredient</label>
+                        <select name="ingredient_id" required class="form-control">
+                            <option value="">Select ingredient...</option>
+                            {% for ing in ingredients %}
+                                <option value="{{ ing.id }}">{{ ing.name }} ({{ format_currency(ing.price_per_unit) }}/{{ ing.unit }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.5rem;">
+                        <div class="form-group">
+                            <label>Quantity</label>
+                            <input type="number" name="quantity" step="0.01" min="0" required class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (optional)</label>
+                            <input type="text" name="notes" placeholder="e.g., chopped" class="form-control">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Ingredient</button>
+                </form>
+            {% else %}
+                <p>No ingredients available. <a href="{{ url_for('ingredient_add') }}">Add ingredients first</a>.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="mt-2 flex-between">
+    <a href="{{ url_for('recipe_list') }}" class="btn btn-secondary">Back to Recipes</a>
+    <a href="{{ url_for('recipe_view', id=recipe.id) }}" class="btn btn-primary">View Recipe</a>
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_recipes }}</div>
+        <div class="stat-label">Recipes</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_ingredients }}</div>
+        <div class="stat-label">Ingredients</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ meal_plans|length }}</div>
+        <div class="stat-label">Active Meal Plans</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Most Cost-Effective Recipes</h2>
+        <a href="{{ url_for('recipe_list') }}?sort=serving" class="btn btn-primary btn-small">View All</a>
+    </div>
+
+    {% if cost_effective %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Recipe</th>
+                    <th>Servings</th>
+                    <th>Total Cost</th>
+                    <th>Cost per Serving</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recipe in cost_effective %}
+                    {% if recipe.cost_per_serving > 0 %}
+                    <tr>
+                        <td><a href="{{ url_for('recipe_view', id=recipe.id) }}">{{ recipe.name }}</a></td>
+                        <td>{{ recipe.servings }}</td>
+                        <td class="price">{{ format_currency(recipe.total_cost) }}</td>
+                        <td class="price">{{ format_currency(recipe.cost_per_serving) }}</td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No recipes with ingredients yet. <a href="{{ url_for('recipe_add') }}">Add your first recipe!</a></p>
+    {% endif %}
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+    <div class="card">
+        <div class="card-header">
+            <h2>Recent Recipes</h2>
+            <a href="{{ url_for('recipe_add') }}" class="btn btn-primary btn-small">+ Add</a>
+        </div>
+
+        {% if recipes %}
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                {% for recipe in recipes %}
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                        <a href="{{ url_for('recipe_view', id=recipe.id) }}">{{ recipe.name }}</a>
+                        {% if recipe.total_cost > 0 %}
+                            <span class="price" style="float: right;">{{ format_currency(recipe.cost_per_serving) }}/serving</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No recipes yet. <a href="{{ url_for('recipe_add') }}">Add your first recipe!</a></p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Recently Updated Ingredients</h2>
+            <a href="{{ url_for('ingredient_add') }}" class="btn btn-primary btn-small">+ Add</a>
+        </div>
+
+        {% if ingredients %}
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                {% for ing in ingredients %}
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                        {{ ing.name }}
+                        <span class="price" style="float: right;">{{ format_currency(ing.price_per_unit) }}/{{ ing.unit }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No ingredients yet. <a href="{{ url_for('ingredient_add') }}">Add ingredients!</a></p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card" style="margin-top: 1.5rem;">
+    <div class="card-header">
+        <h2>Current Meal Plans</h2>
+        <a href="{{ url_for('meal_plan_add') }}" class="btn btn-primary btn-small">+ Create Plan</a>
+    </div>
+
+    {% if meal_plans %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Plan Name</th>
+                    <th>Week Starting</th>
+                    <th>Budget</th>
+                    <th>Total Cost</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plan in meal_plans %}
+                    <tr>
+                        <td><a href="{{ url_for('meal_plan_view', id=plan.id) }}">{{ plan.name }}</a></td>
+                        <td>{{ plan.week_start.strftime('%B %d, %Y') }}</td>
+                        <td class="price">{% if plan.budget %}{{ format_currency(plan.budget) }}{% else %}-{% endif %}</td>
+                        <td class="price">{{ format_currency(plan.total_cost) }}</td>
+                        <td>
+                            {% if plan.budget %}
+                                {% if plan.remaining_budget >= 0 %}
+                                    <span class="budget-status budget-ok">{{ format_currency(plan.remaining_budget) }} left</span>
+                                {% else %}
+                                    <span class="budget-status budget-over">{{ format_currency(-plan.remaining_budget) }} over</span>
+                                {% endif %}
+                            {% else %}
+                                <span style="color: #666;">No budget set</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No meal plans yet. <a href="{{ url_for('meal_plan_add') }}">Create your first meal plan!</a></p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Edit: {{ meal_plan.name }}{% endblock %}
+
+{% block content %}
+<h1>Edit Meal Plan: {{ meal_plan.name }}</h1>
+
+<div class="card mb-2">
+    <h2>Plan Details</h2>
+    <form method="POST" class="form-inline">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.name.label }}
+            {{ form.name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.week_start.label }}
+            {{ form.week_start(class="form-control", type="date") }}
+        </div>
+        <div class="form-group">
+            {{ form.budget.label }}
+            {{ form.budget(class="form-control", step="0.01") }}
+        </div>
+        <div class="form-group" style="align-self: flex-end;">
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+    </form>
+
+    <div class="cost-breakdown mt-2">
+        <div class="cost-item">
+            <span>Total Cost:</span>
+            <span class="price">{{ format_currency(meal_plan.total_cost) }}</span>
+        </div>
+        {% if meal_plan.budget %}
+            <div class="cost-item">
+                <span>Budget:</span>
+                <span>{{ format_currency(meal_plan.budget) }}</span>
+            </div>
+            <div class="cost-item cost-total">
+                <span>Remaining:</span>
+                {% if meal_plan.remaining_budget >= 0 %}
+                    <span class="price">{{ format_currency(meal_plan.remaining_budget) }}</span>
+                {% else %}
+                    <span style="color: #dc3545; font-weight: bold;">-{{ format_currency(-meal_plan.remaining_budget) }} OVER</span>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <h2>Add Meals to Plan</h2>
+
+    {% if recipes %}
+        <form method="POST" action="{{ url_for('meal_plan_add_meal', id=meal_plan.id) }}" class="form-inline mb-2">
+            <div class="form-group">
+                <label>Recipe</label>
+                <select name="recipe_id" required class="form-control">
+                    <option value="">Select recipe...</option>
+                    {% for recipe in recipes %}
+                        <option value="{{ recipe.id }}">{{ recipe.name }} ({{ format_currency(recipe.total_cost) }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Day</label>
+                <select name="day_of_week" required class="form-control">
+                    <option value="0">Monday</option>
+                    <option value="1">Tuesday</option>
+                    <option value="2">Wednesday</option>
+                    <option value="3">Thursday</option>
+                    <option value="4">Friday</option>
+                    <option value="5">Saturday</option>
+                    <option value="6">Sunday</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Meal</label>
+                <select name="meal_type" required class="form-control">
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                    <option value="snack">Snack</option>
+                </select>
+            </div>
+            <div class="form-group" style="align-self: flex-end;">
+                <button type="submit" class="btn btn-primary">Add Meal</button>
+            </div>
+        </form>
+    {% else %}
+        <p>No recipes available. <a href="{{ url_for('recipe_add') }}">Create recipes first</a>.</p>
+    {% endif %}
+
+    <h3>Current Meal Schedule</h3>
+    <div class="meal-grid">
+        {% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+        {% for day_num in range(7) %}
+            <div class="meal-day">
+                <div class="meal-day-header">{{ days[day_num] }}</div>
+
+                {% for meal_type in ['breakfast', 'lunch', 'dinner', 'snack'] %}
+                    <div class="meal-slot">
+                        <div class="meal-slot-label">{{ meal_type|title }}</div>
+                        {% if meals_by_day.get(day_num, {}).get(meal_type) %}
+                            {% set meal = meals_by_day[day_num][meal_type] %}
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.85rem;">{{ meal.recipe.name }}</span>
+                                <form method="POST" action="{{ url_for('meal_plan_remove_meal', plan_id=meal_plan.id, meal_id=meal.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-small btn-danger" style="padding: 0 0.25rem; font-size: 0.7rem;">×</button>
+                                </form>
+                            </div>
+                        {% else %}
+                            <div style="color: #ccc; font-size: 0.85rem;">-</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="mt-2 flex-between">
+    <a href="{{ url_for('meal_plan_list') }}" class="btn btn-secondary">Back to Meal Plans</a>
+    <a href="{{ url_for('meal_plan_view', id=meal_plan.id) }}" class="btn btn-primary">View Plan</a>
+</div>
+{% endblock %}

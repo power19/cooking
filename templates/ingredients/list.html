@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Ingredients{% endblock %}
+
+{% block content %}
+<div class="flex-between">
+    <h1>Ingredients</h1>
+    <a href="{{ url_for('ingredient_add') }}" class="btn btn-primary">+ Add Ingredient</a>
+</div>
+
+<div class="card">
+    <form method="GET" class="form-inline mb-2">
+        <div class="form-group">
+            <label for="category">Filter by Category</label>
+            <select name="category" id="category" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                {% for value, label in categories %}
+                    <option value="{{ value }}" {% if current_category == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="sort">Sort by</label>
+            <select name="sort" id="sort" onchange="this.form.submit()">
+                <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name</option>
+                <option value="price" {% if current_sort == 'price' %}selected{% endif %}>Price (High to Low)</option>
+                <option value="updated" {% if current_sort == 'updated' %}selected{% endif %}>Recently Updated</option>
+            </select>
+        </div>
+    </form>
+
+    {% if ingredients %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price per Unit</th>
+                    <th>Last Updated</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ing in ingredients %}
+                    <tr>
+                        <td><strong>{{ ing.name }}</strong></td>
+                        <td>{{ ing.category|title }}</td>
+                        <td class="price">{{ format_currency(ing.price_per_unit) }} / {{ ing.unit }}</td>
+                        <td>{{ ing.last_updated.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <a href="{{ url_for('ingredient_edit', id=ing.id) }}" class="btn btn-small btn-secondary">Edit</a>
+                            <a href="{{ url_for('ingredient_history', id=ing.id) }}" class="btn btn-small btn-primary">History</a>
+                            <form method="POST" action="{{ url_for('ingredient_delete', id=ing.id) }}" style="display: inline;" onsubmit="return confirm('Delete this ingredient?');">
+                                <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-center">No ingredients found. <a href="{{ url_for('ingredient_add') }}">Add your first ingredient!</a></p>
+    {% endif %}
+</div>
+{% endblock %}

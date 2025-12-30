@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<div class="card">
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.name.label }}
+            {{ form.name(class="form-control") }}
+            {% for error in form.name.errors %}
+                <span class="alert alert-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.description.label }}
+            {{ form.description(class="form-control", rows="2") }}
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                {{ form.servings.label }}
+                {{ form.servings(class="form-control", min="1") }}
+            </div>
+
+            <div class="form-group">
+                {{ form.prep_time_minutes.label }}
+                {{ form.prep_time_minutes(class="form-control", min="0") }}
+            </div>
+
+            <div class="form-group">
+                {{ form.cook_time_minutes.label }}
+                {{ form.cook_time_minutes(class="form-control", min="0") }}
+            </div>
+        </div>
+
+        <div class="form-group">
+            {{ form.instructions.label }}
+            {{ form.instructions(class="form-control", rows="6", placeholder="Step-by-step instructions...") }}
+        </div>
+
+        <div class="flex-between">
+            <a href="{{ url_for('recipe_list') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Recipe</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}{{ meal_plan.name }}{% endblock %}
+
+{% block content %}
+<div class="flex-between">
+    <h1>{{ meal_plan.name }}</h1>
+    <div>
+        <a href="{{ url_for('shopping_list', id=meal_plan.id) }}" class="btn btn-secondary">🛒 Shopping List</a>
+        <a href="{{ url_for('meal_plan_edit', id=meal_plan.id) }}" class="btn btn-primary">Edit Plan</a>
+    </div>
+</div>
+
+<div class="card mb-2">
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; text-align: center;">
+        <div>
+            <div style="color: #666; font-size: 0.9rem;">Week Starting</div>
+            <div style="font-weight: 600;">{{ meal_plan.week_start.strftime('%B %d, %Y') }}</div>
+        </div>
+        <div>
+            <div style="color: #666; font-size: 0.9rem;">Budget</div>
+            <div class="price" style="font-weight: 600;">{% if meal_plan.budget %}{{ format_currency(meal_plan.budget) }}{% else %}-{% endif %}</div>
+        </div>
+        <div>
+            <div style="color: #666; font-size: 0.9rem;">Total Cost</div>
+            <div class="price" style="font-weight: 600;">{{ format_currency(meal_plan.total_cost) }}</div>
+        </div>
+        <div>
+            <div style="color: #666; font-size: 0.9rem;">Status</div>
+            <div>
+                {% if meal_plan.budget %}
+                    {% set remaining = meal_plan.remaining_budget %}
+                    {% if remaining >= 0 %}
+                        <span class="budget-status budget-ok">{{ format_currency(remaining) }} left</span>
+                    {% else %}
+                        <span class="budget-status budget-over">{{ format_currency(-remaining) }} over</span>
+                    {% endif %}
+                {% else %}
+                    <span style="color: #666;">No budget set</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Weekly Meal Schedule</h2>
+
+    <div class="meal-grid">
+        {% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+        {% for day_num in range(7) %}
+            <div class="meal-day">
+                <div class="meal-day-header">{{ days[day_num] }}</div>
+
+                {% for meal_type in ['breakfast', 'lunch', 'dinner'] %}
+                    <div class="meal-slot">
+                        <div class="meal-slot-label">{{ meal_type|title }}</div>
+                        {% if meals_by_day.get(day_num, {}).get(meal_type) %}
+                            {% set meal = meals_by_day[day_num][meal_type] %}
+                            <div>
+                                <a href="{{ url_for('recipe_view', id=meal.recipe.id) }}">{{ meal.recipe.name }}</a>
+                                <div style="font-size: 0.75rem; color: #666;">{{ format_currency(meal.recipe.total_cost) }}</div>
+                            </div>
+                        {% else %}
+                            <div style="color: #ccc;">-</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="mt-2">
+    <a href="{{ url_for('meal_plan_list') }}" class="btn btn-secondary">Back to Meal Plans</a>
+</div>
+{% endblock %}

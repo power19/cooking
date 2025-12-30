@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<div class="card">
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.name.label }}
+            {{ form.name(class="form-control") }}
+            {% for error in form.name.errors %}
+                <span class="alert alert-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                {{ form.category.label }}
+                {{ form.category(class="form-control") }}
+            </div>
+
+            <div class="form-group">
+                {{ form.unit.label }}
+                {{ form.unit(class="form-control") }}
+            </div>
+        </div>
+
+        <div class="form-group">
+            {{ form.price_per_unit.label }}
+            {{ form.price_per_unit(class="form-control", step="0.01") }}
+            {% for error in form.price_per_unit.errors %}
+                <span class="alert alert-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.notes.label }}
+            {{ form.notes(class="form-control", placeholder="Where did you find this price? Any local alternatives?") }}
+        </div>
+
+        <div class="flex-between">
+            <a href="{{ url_for('ingredient_list') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Ingredient</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

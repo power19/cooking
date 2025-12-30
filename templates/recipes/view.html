@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.name }}{% endblock %}
+
+{% block content %}
+<div class="flex-between">
+    <h1>{{ recipe.name }}</h1>
+    <div>
+        <a href="{{ url_for('recipe_edit', id=recipe.id) }}" class="btn btn-secondary">Edit Recipe</a>
+        <form method="POST" action="{{ url_for('recipe_delete', id=recipe.id) }}" style="display: inline;" onsubmit="return confirm('Delete this recipe?');">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <div>
+        {% if recipe.description %}
+            <div class="card">
+                <p>{{ recipe.description }}</p>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <h2>Ingredients</h2>
+            {% if recipe.ingredients.count() > 0 %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ingredient</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ri in recipe.ingredients %}
+                            <tr>
+                                <td>
+                                    {{ ri.ingredient.name }}
+                                    {% if ri.notes %}<em style="color: #666;">({{ ri.notes }})</em>{% endif %}
+                                </td>
+                                <td>{{ ri.quantity }} {{ ri.ingredient.unit }}</td>
+                                <td>{{ format_currency(ri.ingredient.price_per_unit) }}/{{ ri.ingredient.unit }}</td>
+                                <td class="price">{{ format_currency(ri.quantity * ri.ingredient.price_per_unit) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No ingredients added yet. <a href="{{ url_for('recipe_edit', id=recipe.id) }}">Add ingredients</a></p>
+            {% endif %}
+        </div>
+
+        {% if recipe.instructions %}
+            <div class="card">
+                <h2>Instructions</h2>
+                <div style="white-space: pre-line;">{{ recipe.instructions }}</div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div>
+        <div class="card">
+            <h2>Cost Summary</h2>
+
+            <div class="cost-breakdown">
+                <div class="cost-item">
+                    <span>Total Cost:</span>
+                    <span class="price price-large">{{ format_currency(recipe.total_cost) }}</span>
+                </div>
+                <div class="cost-item">
+                    <span>Servings:</span>
+                    <span>{{ recipe.servings }}</span>
+                </div>
+                <div class="cost-item cost-total">
+                    <span>Cost per Serving:</span>
+                    <span class="price price-large">{{ format_currency(recipe.cost_per_serving) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Time</h2>
+            <div class="cost-item">
+                <span>Prep Time:</span>
+                <span>{% if recipe.prep_time_minutes %}{{ recipe.prep_time_minutes }} min{% else %}-{% endif %}</span>
+            </div>
+            <div class="cost-item">
+                <span>Cook Time:</span>
+                <span>{% if recipe.cook_time_minutes %}{{ recipe.cook_time_minutes }} min{% else %}-{% endif %}</span>
+            </div>
+            {% if recipe.prep_time_minutes or recipe.cook_time_minutes %}
+            <div class="cost-item cost-total">
+                <span>Total Time:</span>
+                <span>{{ (recipe.prep_time_minutes or 0) + (recipe.cook_time_minutes or 0) }} min</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="mt-2">
+    <a href="{{ url_for('recipe_list') }}" class="btn btn-secondary">Back to Recipes</a>
+</div>
+{% endblock %}
